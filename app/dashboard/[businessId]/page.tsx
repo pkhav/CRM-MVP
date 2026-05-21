@@ -75,7 +75,7 @@ export default async function BusinessDashboardPage({ params }: DashboardRoutePr
                 { label: "Reviews", href: "#operations" },
                 { label: "Social inbox", href: "#operations" },
                 { label: "Calendar", href: "#operations" },
-                { label: "Campaigns", href: "#funnels" },
+                { label: "Campaigns", href: `/dashboard/${business.id}/campaigns` },
               ].map((item) => (
                 <Link
                   className={`block rounded-lg px-3 py-2 ${
@@ -170,6 +170,22 @@ export default async function BusinessDashboardPage({ params }: DashboardRoutePr
                 <p className="mt-2 text-sm leading-5 text-slate-500">{stat.helper}</p>
               </div>
             ))}
+          </section>
+
+          <section className="grid gap-4 md:grid-cols-[1fr_auto]">
+            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+              <p className={`text-sm font-semibold ${business.theme.accentText}`}>Campaign Center</p>
+              <h3 className="mt-1 text-xl font-bold">Email, text, and social campaigns</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Draft follow-ups, attach funnel links, and organize campaigns for new leads, stale leads, and social audiences.
+              </p>
+            </div>
+            <Link
+              className={`flex items-center justify-center rounded-lg px-4 py-3 text-center text-sm font-semibold text-white shadow-sm ${business.theme.button}`}
+              href={`/dashboard/${business.id}/campaigns`}
+            >
+              Open Campaign Center
+            </Link>
           </section>
 
           <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]" id="funnels">

@@ -71,6 +71,62 @@ export async function ensureDemoData() {
       });
     }
 
+    const campaignTemplates = [
+      {
+        id: `${business.id}-new-lead-follow-up`,
+        name: "New lead follow-up",
+        channel: "Text",
+        audience: "New funnel leads",
+        status: "draft",
+        subject: null,
+        body: `Hi {{firstName}}, this is ${business.owner} from ${business.name}. Thanks for your interest. Want help booking your next step?`,
+        cta: "Reply YES to book",
+        funnelSlug: business.funnels[0]?.id,
+      },
+      {
+        id: `${business.id}-weekly-offer-email`,
+        name: "Weekly offer email",
+        channel: "Email",
+        audience: "Open leads",
+        status: "draft",
+        subject: `${business.name}: your next step is ready`,
+        body: `Share the current offer, remind leads why it matters, and send them back to the funnel page for ${business.funnels[0]?.name}.`,
+        cta: "Book now",
+        funnelSlug: business.funnels[0]?.id,
+      },
+      {
+        id: `${business.id}-social-funnel-post`,
+        name: "Social funnel post",
+        channel: "Social",
+        audience: "Instagram and Facebook followers",
+        status: "draft",
+        subject: null,
+        body: `Post a short story about the offer, include proof, and direct people to the funnel link in bio.`,
+        cta: "Tap the link in bio",
+        funnelSlug: business.funnels[0]?.id,
+      },
+    ];
+
+    for (const campaign of campaignTemplates) {
+      await prisma.campaign.upsert({
+        where: { id: campaign.id },
+        update: {
+          name: campaign.name,
+          channel: campaign.channel,
+          audience: campaign.audience,
+          status: campaign.status,
+          subject: campaign.subject,
+          body: campaign.body,
+          cta: campaign.cta,
+          funnelSlug: campaign.funnelSlug,
+        },
+        create: {
+          businessId: business.id,
+          ...campaign,
+        },
+      });
+    }
+
     const existingLeads = await prisma.lead.count({ where: { businessId: business.id } });
     if (existingLeads === 0) {
       for (const [index, lead] of business.leads.entries()) {
@@ -148,7 +204,7 @@ export async function getBusinessWorkspace(businessId: string) {
     return undefined;
   }
 
-  const [business, leads, funnels, bookings, reviews, socials] = await Promise.all([
+  const [business, leads, funnels, campaigns, bookings, reviews, socials] = await Promise.all([
     prisma.business.findUnique({ where: { id: businessId } }),
     prisma.lead.findMany({ where: { businessId }, orderBy: { createdAt: "desc" } }),
     prisma.funnel.findMany({
@@ -156,6 +212,7 @@ export async function getBusinessWorkspace(businessId: string) {
       include: { submissions: true },
       orderBy: { createdAt: "asc" },
     }),
+    prisma.campaign.findMany({ where: { businessId }, orderBy: { createdAt: "asc" } }),
     prisma.booking.findMany({ where: { businessId }, orderBy: { createdAt: "desc" } }),
     prisma.reviewConnection.findMany({ where: { businessId } }),
     prisma.socialConnection.findMany({ where: { businessId } }),
@@ -191,6 +248,7 @@ export async function getBusinessWorkspace(businessId: string) {
     ],
     dbLeads: leads,
     dbFunnels: funnels,
+    dbCampaigns: campaigns,
     dbBookings: bookings,
     dbReviews: reviews,
     dbSocials: socials,
