@@ -76,6 +76,7 @@ export default async function BusinessDashboardPage({ params }: DashboardRoutePr
                 { label: "Social inbox", href: "#operations" },
                 { label: "Calendar", href: "#operations" },
                 { label: "Campaigns", href: `/dashboard/${business.id}/campaigns` },
+                { label: "Assistant", href: `/dashboard/${business.id}/assistant` },
               ].map((item) => (
                 <Link
                   className={`block rounded-lg px-3 py-2 ${
@@ -185,6 +186,22 @@ export default async function BusinessDashboardPage({ params }: DashboardRoutePr
               href={`/dashboard/${business.id}/campaigns`}
             >
               Open Campaign Center
+            </Link>
+          </section>
+
+          <section className="grid gap-4 md:grid-cols-[1fr_auto]">
+            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+              <p className={`text-sm font-semibold ${business.theme.accentText}`}>Automated Follow-Up Assistant</p>
+              <h3 className="mt-1 text-xl font-bold">Text and email follow-up rules</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Create playbooks for new leads, stale leads, no-replies, and no-shows, then queue test messages before connecting SMS delivery.
+              </p>
+            </div>
+            <Link
+              className={`flex items-center justify-center rounded-lg px-4 py-3 text-center text-sm font-semibold text-white shadow-sm ${business.theme.button}`}
+              href={`/dashboard/${business.id}/assistant`}
+            >
+              Open Assistant
             </Link>
           </section>
 

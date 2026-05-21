@@ -21,6 +21,8 @@ model Business {
   leads     Lead[]
   funnels   Funnel[]
   campaigns Campaign[]
+  automations AutomationRule[]
+  queuedMessages QueuedMessage[]
   bookings  Booking[]
   reviews   ReviewConnection[]
   socials   SocialConnection[]
@@ -106,6 +108,42 @@ model Campaign {
   sentAt     DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model AutomationRule {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+
+  name        String
+  trigger     String
+  channel     String
+  delayMinutes Int     @default(0)
+  audience    String
+  status      String   @default("active")
+  message     String
+  fallbackMessage String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  queuedMessages QueuedMessage[]
+}
+
+model QueuedMessage {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  ruleId     String?
+  rule       AutomationRule? @relation(fields: [ruleId], references: [id])
+  leadId     String?
+
+  channel    String
+  recipient  String?
+  message    String
+  status     String   @default("queued")
+  scheduledAt DateTime
+  sentAt     DateTime?
+  createdAt  DateTime @default(now())
 }
 
 model Revenue {

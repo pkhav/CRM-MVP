@@ -127,6 +127,62 @@ export async function ensureDemoData() {
       });
     }
 
+    const automationRules = [
+      {
+        id: `${business.id}-instant-new-lead-text`,
+        name: "Instant new lead text",
+        trigger: "new_lead_created",
+        channel: "Text",
+        delayMinutes: 0,
+        audience: "New funnel leads",
+        status: "active",
+        message: `Hi {{firstName}}, thanks for reaching out to ${business.name}. Want me to help you book your next step?`,
+        fallbackMessage: "If they do not reply in 1 hour, send the soft follow-up.",
+      },
+      {
+        id: `${business.id}-one-hour-no-reply`,
+        name: "1-hour no-reply follow-up",
+        trigger: "lead_no_reply",
+        channel: "Text",
+        delayMinutes: 60,
+        audience: "Uncontacted leads",
+        status: "active",
+        message: `Quick follow-up, {{firstName}}. I can send available times or answer questions before you book.`,
+        fallbackMessage: "Pause once lead is marked contacted, scheduled, closed, or lost.",
+      },
+      {
+        id: `${business.id}-stale-lead-email`,
+        name: "3-day stale lead email",
+        trigger: "lead_stale_3_days",
+        channel: "Email",
+        delayMinutes: 4320,
+        audience: "Open leads",
+        status: "paused",
+        message: `Subject: Still interested?\n\nHi {{firstName}}, here is a quick reminder about the offer you requested from ${business.name}.`,
+        fallbackMessage: "Move to long-term nurture after this step.",
+      },
+    ];
+
+    for (const rule of automationRules) {
+      await prisma.automationRule.upsert({
+        where: { id: rule.id },
+        update: {
+          name: rule.name,
+          trigger: rule.trigger,
+          channel: rule.channel,
+          delayMinutes: rule.delayMinutes,
+          audience: rule.audience,
+          status: rule.status,
+          message: rule.message,
+          fallbackMessage: rule.fallbackMessage,
+        },
+        create: {
+          businessId: business.id,
+          ...rule,
+        },
+      });
+    }
+
     const existingLeads = await prisma.lead.count({ where: { businessId: business.id } });
     if (existingLeads === 0) {
       for (const [index, lead] of business.leads.entries()) {
@@ -204,7 +260,7 @@ export async function getBusinessWorkspace(businessId: string) {
     return undefined;
   }
 
-  const [business, leads, funnels, campaigns, bookings, reviews, socials] = await Promise.all([
+  const [business, leads, funnels, campaigns, automations, queuedMessages, bookings, reviews, socials] = await Promise.all([
     prisma.business.findUnique({ where: { id: businessId } }),
     prisma.lead.findMany({ where: { businessId }, orderBy: { createdAt: "desc" } }),
     prisma.funnel.findMany({
@@ -213,6 +269,12 @@ export async function getBusinessWorkspace(businessId: string) {
       orderBy: { createdAt: "asc" },
     }),
     prisma.campaign.findMany({ where: { businessId }, orderBy: { createdAt: "asc" } }),
+    prisma.automationRule.findMany({
+      where: { businessId },
+      include: { queuedMessages: true },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.queuedMessage.findMany({ where: { businessId }, orderBy: { scheduledAt: "asc" } }),
     prisma.booking.findMany({ where: { businessId }, orderBy: { createdAt: "desc" } }),
     prisma.reviewConnection.findMany({ where: { businessId } }),
     prisma.socialConnection.findMany({ where: { businessId } }),
@@ -249,6 +311,8 @@ export async function getBusinessWorkspace(businessId: string) {
     dbLeads: leads,
     dbFunnels: funnels,
     dbCampaigns: campaigns,
+    dbAutomations: automations,
+    dbQueuedMessages: queuedMessages,
     dbBookings: bookings,
     dbReviews: reviews,
     dbSocials: socials,
