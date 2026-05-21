@@ -1,173 +1,61 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("BHW_DATABASE_POSTGRES_PRISMA_URL")
-}
-
 model Business {
-  id        String @id @default(cuid())
-  name      String
-  owner     String
-  email     String?
-  vertical  String // "med_spa", "boutique_gym", "personal_trainer"
-  tagline   String?
-  location  String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String
+  vertical    String   // "med_spa", "boutique_gym", "personal_trainer"
+  createdAt   DateTime @default(now())
 
-  users       User[]
   leads       Lead[]
-  funnels     Funnel[]
-  bookings    Booking[]
-  reviews     ReviewConnection[]
-  socials     SocialConnection[]
   revenue     Revenue[]
   messages    MessageLog[]
 }
 
-model User {
-  id         String   @id @default(cuid())
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
-  name       String
-  email      String   @unique
-  passwordHash String   @default("")
-  role       String   @default("owner")
-  createdAt  DateTime @default(now())
-
-  sessions Session[]
-}
-
-model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  tokenHash String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-}
-
 model Lead {
-  id         String   @id @default(cuid())
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
+  id                 String   @id @default(cuid())
+  businessId         String
+  business           Business @relation(fields: [businessId], references: [id])
 
-  firstName String
-  lastName  String?
-  email     String?
-  phone     String?
+  firstName          String
+  lastName           String?
+  email              String?
+  phone              String?
 
-  source   String // "instagram", "facebook", "google", "tiktok", "referral", "website"
-  campaign String?
-  status   String // "new", "contacted", "scheduled", "closed", "lost"
-  service  String?
-  notes    String?
-  funnelId String?
+  source             String   // "instagram", "facebook", "google", "tiktok", "referral", "website"
+  campaign           String?
+  status             String   // "new", "contacted", "scheduled", "closed", "lost"
 
-  estimatedValue Float @default(0)
-  closedValue    Float @default(0)
+  estimatedValue     Float    @default(0)
+  closedValue        Float    @default(0)
 
-  lostReason String?
-  createdAt  DateTime  @default(now())
-  closedAt   DateTime?
-  updatedAt  DateTime  @updatedAt
-}
-
-model Booking {
-  id         String   @id @default(cuid())
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
-  leadId     String?
-  title      String
-  service    String?
-  startAt    DateTime?
-  status     String   @default("scheduled")
-  notes      String?
-  createdAt  DateTime @default(now())
+  lostReason         String?
+  createdAt          DateTime @default(now())
+  closedAt           DateTime?
+  updatedAt          DateTime @updatedAt
 }
 
 model Revenue {
-  id         String   @id @default(cuid())
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
 
-  amount    Float
-  source    String? // "lead", "membership", "package", "consultation"
-  leadId    String?
-  createdAt DateTime @default(now())
+  amount      Float
+  source      String?  // "lead", "membership", "package", "consultation"
+  leadId      String?
+  createdAt   DateTime @default(now())
 }
 
 model MessageLog {
-  id         String   @id @default(cuid())
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
 
-  type      String // "call", "sms", "email"
-  direction String // "inbound", "outbound"
-  status    String // "answered", "missed", "sent", "failed", "received"
-  leadId    String?
-  createdAt DateTime @default(now())
+  type        String   // "call", "sms", "email"
+  direction   String   // "inbound", "outbound"
+  status      String   // "answered", "missed", "sent", "failed", "received"
+  leadId      String?
+  createdAt   DateTime @default(now())
 }
 
-model Funnel {
-  id         String   @id @default(cuid())
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
-
-  slug       String
-  name       String
-  headline   String
-  offer      String
-  channel    String
-  status     String   @default("draft")
-  cta        String
-  fields     String
-  theme      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  submissions FunnelSubmission[]
-
-  @@unique([businessId, slug])
-}
-
-model FunnelSubmission {
-  id         String @id @default(cuid())
-  funnelId   String
-  funnel     Funnel @relation(fields: [funnelId], references: [id])
-  businessId String
-
-  firstName String?
-  lastName  String?
-  email     String?
-  phone     String?
-  source    String
-  payload   String
-  createdAt DateTime @default(now())
-}
-
-model ReviewConnection {
-  id         String   @id @default(cuid())
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
-  provider   String
-  rating     Float    @default(0)
-  pending    Int      @default(0)
-  status     String   @default("not_connected")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
-model SocialConnection {
-  id         String   @id @default(cuid())
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
-  platform   String
-  handle     String?
-  unread     Int      @default(0)
-  status     String   @default("not_connected")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
